@@ -483,7 +483,8 @@ class MainWindow(QMainWindow):
         
         about_text = QLabel(
             "<h2 style='font-size: 24px;'>Game of 21 (Blackjack)</h2>"
-            "<p style='font-size: 16px; margin-top: 10px;'>A classic card game built with PyQt6.</p>"
+            "<p style='font-size: 16px; margin-top: 10px;'>A classic card game built with PyQt6</p>"
+            "<p style='font-size: 16px; margin-top: 10px;'>Made by Nichita Chirtoaca and Antonio Madrid</p>"
             "<p style='font-size: 16px;'>Try to beat the dealer!</p>"
         )
         about_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
