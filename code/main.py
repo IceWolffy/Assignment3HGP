@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton,
                              QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, 
                              QDialog, QDialogButtonBox, QMenuBar, QMenu, QGraphicsOpacityEffect, QSlider, QWidgetAction)
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QUrl
-from PyQt6.QtGui import QPixmap,  QFont, QFontDatabase
+from PyQt6.QtGui import QPixmap, QFont, QFontDatabase, QAction
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 import sys
 import os
@@ -170,6 +170,7 @@ class MainWindow(QMainWindow):
         game_menu.addSeparator()
         
         quit_action = game_menu.addAction("Quit")
+        quit_action.setMenuRole(QAction.MenuRole.NoRole)
         quit_action.triggered.connect(self.close)
         
         # Settings menu
@@ -236,6 +237,7 @@ class MainWindow(QMainWindow):
         help_menu.addSeparator()
         
         about_action = help_menu.addAction("About")
+        about_action.setMenuRole(QAction.MenuRole.NoRole)
         about_action.triggered.connect(self.show_about)
 
     def update_volume(self, value):

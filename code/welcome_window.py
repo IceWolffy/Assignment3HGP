@@ -13,7 +13,8 @@ class WelcomeWindow(QMainWindow):
         self.setWindowTitle("LUDO - Ready to gamble?")
         
         # Load custom font first
-        font_id = QFontDatabase.addApplicationFont("code/assets/font/Ultra-Regular.ttf")
+        font_path = os.path.join(os.path.dirname(__file__), "assets", "font", "Ultra-Regular.ttf")
+        font_id = QFontDatabase.addApplicationFont(font_path)
         font_families = QFontDatabase.applicationFontFamilies(font_id)
         if font_families:
             self.ultra_font_family = font_families[0]
