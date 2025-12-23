@@ -106,6 +106,18 @@ class MainWindow(QMainWindow):
         self.feedbackLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(self.feedbackLabel)
         
+        # Add pulsating animation to feedback label
+        self.feedback_opacity_effect = QGraphicsOpacityEffect()
+        self.feedbackLabel.setGraphicsEffect(self.feedback_opacity_effect)
+        self.feedback_animation = QPropertyAnimation(self.feedback_opacity_effect, b"opacity")
+        self.feedback_animation.setDuration(3000)
+        self.feedback_animation.setStartValue(0.8)
+        self.feedback_animation.setKeyValueAt(0.5, 1.0)
+        self.feedback_animation.setEndValue(0.8)
+        self.feedback_animation.setEasingCurve(QEasingCurve.Type.InOutSine)
+        self.feedback_animation.setLoopCount(-1)
+        self.feedback_animation.start()
+        
         # Buttons
         button_layout = QHBoxLayout()
         
@@ -362,6 +374,8 @@ class MainWindow(QMainWindow):
         self.hitButton.setEnabled(True)
         self.standButton.setEnabled(True)
         self.newRoundButton.setEnabled(False)
+        self.feedback_animation.stop()
+        self.feedback_opacity_effect.setOpacity(1.0)
         self.feedbackLabel.setText("Your turn")
 
     def end_round(self):
