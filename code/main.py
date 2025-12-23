@@ -1,27 +1,51 @@
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, 
                              QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, 
                              QDialog, QDialogButtonBox, QMenuBar, QMenu, QGraphicsOpacityEffect)
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QUrl
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 import sys
 import os
 
 # this project should use a modular approach - try to keep UI logic and game logic separate
 from game_logic import Game21
 from welcome_window import WelcomeWindow
+from music_manager import MusicManager
+from card_display import CardDisplay
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, music_player=None, audio_output=None):
         super().__init__()
         self.setWindowTitle("LUDO")
 
-        # set the windows dimensions
-        self.setGeometry(200, 200, 600, 500)
+        # Set window size
+        self.resize(800, 800)
+        
+        # Center the window on screen
+        screen = QApplication.primaryScreen().geometry()
+        window_geometry = self.frameGeometry()
+        center_point = screen.center()
+        window_geometry.moveCenter(center_point)
+        self.move(window_geometry.topLeft())
 
         self.game = Game21()
+        
+        # Initialize card display helper
+        self.card_display = CardDisplay()
 
         self.initUI()
         self.load_stylesheet()
+        
+        # Use existing music manager or create new one
+        if music_player and audio_output:
+            self.music_player = music_player
+            self.audio_output = audio_output
+        else:
+            music_mgr = MusicManager()
+            music_mgr.play()
+            self.music_player = music_mgr.get_player()
+            self.audio_output = music_mgr.get_audio_output()
 
     def initUI(self):
         # Create menu bar
@@ -125,6 +149,29 @@ class MainWindow(QMainWindow):
         quit_action = game_menu.addAction("Quit")
         quit_action.triggered.connect(self.close)
         
+        # Settings menu
+        settings_menu = menubar.addMenu("Settings")
+        
+        card_back_menu = settings_menu.addMenu("Card Back")
+        
+        # Red card backs
+        red_submenu = card_back_menu.addMenu("Red")
+        for i in range(1, 6):
+            action = red_submenu.addAction(f"Red {i}")
+            action.triggered.connect(lambda checked, num=i: self.change_card_back(f"cardBack_red{num}.png"))
+        
+        # Blue card backs
+        blue_submenu = card_back_menu.addMenu("Blue")
+        for i in range(1, 6):
+            action = blue_submenu.addAction(f"Blue {i}")
+            action.triggered.connect(lambda checked, num=i: self.change_card_back(f"cardBack_blue{num}.png"))
+        
+        # Green card backs
+        green_submenu = card_back_menu.addMenu("Green")
+        for i in range(1, 6):
+            action = green_submenu.addAction(f"Green {i}")
+            action.triggered.connect(lambda checked, num=i: self.change_card_back(f"cardBack_green{num}.png"))
+        
         # Help menu
         help_menu = menubar.addMenu("Help")
         
@@ -135,17 +182,25 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(self.show_about)
 
     def quit_to_main_menu(self):
-        # Close the game window and show the welcome window
-        self.welcome_window = WelcomeWindow()
+        # Close the game window and show the welcome window with existing music player
+        self.welcome_window = WelcomeWindow(music_player=self.music_player, audio_output=self.audio_output)
         self.welcome_window.show()
         self.close()
+    
+    def change_card_back(self, card_back_file):
+        # Change the card back style and refresh dealer cards if hidden
+        self.card_display.set_card_back_style(card_back_file)
+        # Refresh the display if there are hidden dealer cards
+        if hasattr(self.game, 'dealer_hand') and len(self.game.dealer_hand) > 0:
+            if not self.game.dealer_hidden_revealed:
+                self.update_dealer_cards(full=False)
 
     # Button actions
 
     def on_hit(self):
         # Player takes a card
         card = self.game.player_hit()
-        self.add_card(self.playerCardsLayout, card)
+        self.card_display.add_card(self.playerCardsLayout, card)
         
         player_total = self.game.player_total()
         self.playerTotalLabel.setText(f"Total: {player_total}")
@@ -160,10 +215,11 @@ class MainWindow(QMainWindow):
     def on_stand(self):
         # Player ends turn; dealer reveals their hidden card and plays
         self.game.reveal_dealer_card()
-        self.update_dealer_cards(full=True)
         
         # Play dealer's turn
         self.game.play_dealer_turn()
+        
+        # Update dealer cards once after dealer finishes playing
         self.update_dealer_cards(full=True)
         
         dealer_total = self.game.dealer_total()
@@ -182,31 +238,15 @@ class MainWindow(QMainWindow):
 
     # HELPER METHODS
 
-    def clear_layout(self, layout):
-        # Remove all widgets from a layout
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
-
-    def add_card(self, layout, card_text):
-        # Create a QLabel showing the card value and add it to the chosen layout.
-        label = QLabel(card_text)
-        label.setObjectName("cardLabel")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(label)
-        label.setProperty("card", True)
-
     def update_dealer_cards(self, full=False):
         # Show dealer cards; hide the first card until revealed
-        self.clear_layout(self.dealerCardsLayout)
+        self.card_display.clear_layout(self.dealerCardsLayout)
 
         for i, card in enumerate(self.game.dealer_hand):
             if i == 0 and not full and not self.game.dealer_hidden_revealed:
-                self.add_card(self.dealerCardsLayout, "??")   # face-down
+                self.card_display.add_card(self.dealerCardsLayout, "??")   # face-down
             else:
-                self.add_card(self.dealerCardsLayout, card)
+                self.card_display.add_card(self.dealerCardsLayout, card)
 
         # Update dealer total label
         if full or self.game.dealer_hidden_revealed:
@@ -223,8 +263,8 @@ class MainWindow(QMainWindow):
 
     def new_round_setup(self):
         # Prepare a fresh visual layout
-        self.clear_layout(self.playerCardsLayout)
-        self.clear_layout(self.dealerCardsLayout)
+        self.card_display.clear_layout(self.playerCardsLayout)
+        self.card_display.clear_layout(self.dealerCardsLayout)
         
         # Update labels (reset dealer and player totals)
         player_total = self.game.player_total()
@@ -232,7 +272,7 @@ class MainWindow(QMainWindow):
         
         # Display new cards for dealers and players
         for card in self.game.player_hand:
-            self.add_card(self.playerCardsLayout, card)
+            self.card_display.add_card(self.playerCardsLayout, card)
         
         self.update_dealer_cards(full=False)
         

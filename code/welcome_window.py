@@ -1,13 +1,25 @@
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, 
                              QVBoxLayout, QWidget, QGraphicsOpacityEffect)
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QUrl
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 import os
 
+from music_manager import MusicManager
+
 class WelcomeWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, music_player=None, audio_output=None):
         super().__init__()
         self.setWindowTitle("LUDO - Ready to gamble?")
-        self.setGeometry(300, 300, 400, 300)
+        
+        # Set window size
+        self.resize(400, 300)
+        
+        # Center the window on screen
+        screen = QApplication.primaryScreen().geometry()
+        window_geometry = self.frameGeometry()
+        center_point = screen.center()
+        window_geometry.moveCenter(center_point)
+        self.move(window_geometry.topLeft())
         
         # Create central widget and layout
         central_widget = QWidget()
@@ -91,6 +103,16 @@ class WelcomeWindow(QMainWindow):
         # Load stylesheet
         self.load_stylesheet()
         
+        # Use existing music player or create new one
+        if music_player and audio_output:
+            self.music_player = music_player
+            self.audio_output = audio_output
+        else:
+            music_mgr = MusicManager()
+            music_mgr.play()
+            self.music_player = music_mgr.get_player()
+            self.audio_output = music_mgr.get_audio_output()
+        
         # Reference to the game window (will be created when start is clicked)
         self.game_window = None
     
@@ -107,8 +129,8 @@ class WelcomeWindow(QMainWindow):
         # Import here to avoid circular dependency
         from main import MainWindow
         
-        # Create and show the main game window
-        self.game_window = MainWindow()
+        # Create and show the main game window, passing the music player
+        self.game_window = MainWindow(music_player=self.music_player, audio_output=self.audio_output)
         self.game_window.show()
         # Close the welcome window
         self.close()
