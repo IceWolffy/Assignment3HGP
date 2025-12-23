@@ -136,9 +136,9 @@ class Game21:
         dealer_total = self.dealer_total()
         
         if player_total > 21:
-            return "player busts. dealer wins, get better bozo"
+            return "player busts. dealer wins, get better luck!"
         if dealer_total > 21:
-            return "dealer busts. player wins, gambling always pays off"
+            return "dealer busts. player wins, gambling always pays off!"
         
         if player_total > dealer_total:
             return "player wins"

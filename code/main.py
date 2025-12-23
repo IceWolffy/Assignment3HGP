@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, 
                              QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, 
-                             QDialog, QDialogButtonBox, QMenuBar, QMenu, QGraphicsOpacityEffect)
+                             QDialog, QDialogButtonBox, QMenuBar, QMenu, QGraphicsOpacityEffect, QSlider, QWidgetAction)
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QUrl
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap,  QFont, QFontDatabase
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 import sys
 import os
@@ -19,9 +19,10 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("LUDO")
 
+        QFontDatabase.addApplicationFont("code/assets/font/Jaro-Regular-VariableFont_opsz.ttf")
         # Set window size
-        self.resize(800, 800)
-        
+        self.resize(600, 700)
+
         # Center the window on screen
         screen = QApplication.primaryScreen().geometry()
         window_geometry = self.frameGeometry()
@@ -33,6 +34,10 @@ class MainWindow(QMainWindow):
         
         # Initialize card display helper
         self.card_display = CardDisplay()
+        
+        # Track dealer card labels for flip animation
+        self.dealer_card_labels = []
+        self.dealer_had_hidden_card = False
 
         self.initUI()
         self.load_stylesheet()
@@ -46,6 +51,14 @@ class MainWindow(QMainWindow):
             music_mgr.play()
             self.music_player = music_mgr.get_player()
             self.audio_output = music_mgr.get_audio_output()
+        
+        # Sync volume slider with current audio volume
+        if hasattr(self, 'volume_slider') and self.audio_output:
+            current_volume = self.audio_output.volume()
+            volume_percent = int(current_volume * 100)
+            self.volume_slider.setValue(volume_percent)
+            if hasattr(self, 'volume_value_label'):
+                self.volume_value_label.setText(f"{volume_percent}%")
 
     def initUI(self):
         # Create menu bar
@@ -65,13 +78,14 @@ class MainWindow(QMainWindow):
         self.dealerCardsLayout = QHBoxLayout()
         dealer_cards_widget = QWidget()
         dealer_cards_widget.setLayout(self.dealerCardsLayout)
+        dealer_cards_widget.setMinimumHeight(180)  # Reserve space for cards
         main_layout.addWidget(dealer_cards_widget)
         
         self.dealerTotalLabel = QLabel("Total: 0")
         self.dealerTotalLabel.setObjectName("totalLabel")
         main_layout.addWidget(self.dealerTotalLabel)
         
-        main_layout.addSpacing(20)
+        main_layout.addSpacing(5)
         
         # Player Section
         player_label = QLabel("Player:")
@@ -81,13 +95,20 @@ class MainWindow(QMainWindow):
         self.playerCardsLayout = QHBoxLayout()
         player_cards_widget = QWidget()
         player_cards_widget.setLayout(self.playerCardsLayout)
+        player_cards_widget.setMinimumHeight(180)  # Reserve space for cards
         main_layout.addWidget(player_cards_widget)
         
         self.playerTotalLabel = QLabel("Total: 0")
         self.playerTotalLabel.setObjectName("totalLabel")
         main_layout.addWidget(self.playerTotalLabel)
         
-        main_layout.addSpacing(20)
+        main_layout.addSpacing(5)
+        
+        # Feedback label
+        self.feedbackLabel = QLabel("Click 'New Round' to start!")
+        self.feedbackLabel.setObjectName("feedbackLabel")
+        self.feedbackLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(self.feedbackLabel)
         
         # Buttons
         button_layout = QHBoxLayout()
@@ -102,18 +123,12 @@ class MainWindow(QMainWindow):
         self.standButton.clicked.connect(self.on_stand)
         button_layout.addWidget(self.standButton)
         
-        self.newRoundButton = QPushButton("NEW ROUND RAHHH")
+        self.newRoundButton = QPushButton("New round!")
         self.newRoundButton.setObjectName("newRoundButton")
         self.newRoundButton.clicked.connect(self.on_new_round)
         button_layout.addWidget(self.newRoundButton)
         
         main_layout.addLayout(button_layout)
-        
-        # Feedback label
-        self.feedbackLabel = QLabel("Click 'New Round' to start!")
-        self.feedbackLabel.setObjectName("feedbackLabel")
-        self.feedbackLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(self.feedbackLabel)
         
         main_layout.addStretch()
         
@@ -141,7 +156,7 @@ class MainWindow(QMainWindow):
         # Game menu
         game_menu = menubar.addMenu("Game")
         
-        main_menu_action = game_menu.addAction("Quit to Main Menu")
+        main_menu_action = game_menu.addAction("Main Menu")
         main_menu_action.triggered.connect(self.quit_to_main_menu)
         
         game_menu.addSeparator()
@@ -152,7 +167,7 @@ class MainWindow(QMainWindow):
         # Settings menu
         settings_menu = menubar.addMenu("Settings")
         
-        card_back_menu = settings_menu.addMenu("Card Back")
+        card_back_menu = settings_menu.addMenu("Back of card color")
         
         # Red card backs
         red_submenu = card_back_menu.addMenu("Red")
@@ -178,29 +193,67 @@ class MainWindow(QMainWindow):
         rules_action = help_menu.addAction("Rules")
         rules_action.triggered.connect(self.show_rules)
         
+        help_menu.addSeparator()
+        
         about_action = help_menu.addAction("About")
         about_action.triggered.connect(self.show_about)
+        
+        #volume control widget on menu bar
+        volume_widget = QWidget()
+        volume_layout = QHBoxLayout()
+        volume_layout.setContentsMargins(10, 0, 10, 0)
+        volume_layout.setSpacing(8)
+        
+        volume_label = QLabel("Volume:")
+        volume_label.setStyleSheet("color: white; padding: 0px 5px; font-size: 14px;")
+        volume_layout.addWidget(volume_label)
+        
+        self.volume_slider = QSlider(Qt.Orientation.Horizontal)
+        self.volume_slider.setMinimum(0)
+        self.volume_slider.setMaximum(100)
+        self.volume_slider.setValue(50)
+        self.volume_slider.setFixedWidth(120)
+        self.volume_slider.setFixedHeight(20)
+        self.volume_slider.valueChanged.connect(self.update_volume)
+        volume_layout.addWidget(self.volume_slider)
+        
+        self.volume_value_label = QLabel("50%")
+        self.volume_value_label.setStyleSheet("color: white; padding: 0px 5px; min-width: 40px; font-size: 14px;")
+        volume_layout.addWidget(self.volume_value_label)
+        
+        volume_widget.setLayout(volume_layout)
+        menubar.setCornerWidget(volume_widget, Qt.Corner.TopRightCorner)
 
+    def update_volume(self, value):
+        #convert slider value (0-100) to volume (0.0-1.0)
+        volume = value / 100.0
+        if self.audio_output:
+            self.audio_output.setVolume(volume)
+        #update the label
+        if hasattr(self, 'volume_value_label'):
+            self.volume_value_label.setText(f"{value}%")
+    
     def quit_to_main_menu(self):
-        # Close the game window and show the welcome window with existing music player
+        #close the game window and show the welcome window with existing music player
         self.welcome_window = WelcomeWindow(music_player=self.music_player, audio_output=self.audio_output)
         self.welcome_window.show()
         self.close()
     
     def change_card_back(self, card_back_file):
-        # Change the card back style and refresh dealer cards if hidden
+        #change the card back style and refresh dealer cards if hidden
         self.card_display.set_card_back_style(card_back_file)
-        # Refresh the display if there are hidden dealer cards
+        #refresh the display if there are hidden dealer cards
         if hasattr(self.game, 'dealer_hand') and len(self.game.dealer_hand) > 0:
             if not self.game.dealer_hidden_revealed:
                 self.update_dealer_cards(full=False)
+
 
     # Button actions
 
     def on_hit(self):
         # Player takes a card
         card = self.game.player_hit()
-        self.card_display.add_card(self.playerCardsLayout, card)
+        self.card_display.add_card(self.playerCardsLayout, card, animate=True)
         
         player_total = self.game.player_total()
         self.playerTotalLabel.setText(f"Total: {player_total}")
@@ -239,21 +292,46 @@ class MainWindow(QMainWindow):
     # HELPER METHODS
 
     def update_dealer_cards(self, full=False):
-        # Show dealer cards; hide the first card until revealed
-        self.card_display.clear_layout(self.dealerCardsLayout)
+        #show dealer cards, hide the first card until revealed
+        # If animate the flip
+        should_flip = (full and self.dealer_had_hidden_card and len(self.dealer_card_labels) > 0 and 
+                      len(self.game.dealer_hand) > 0)
+        
+        if should_flip:
+            #flip the first card with animation
+            first_card_label = self.dealer_card_labels[0]
+            actual_card = self.game.dealer_hand[0]
+            self.card_display.animate_card_flip(first_card_label, actual_card)
+            self.dealer_had_hidden_card = False
+            
+            #add any new cards that were dealt during dealer's turn
+            existing_count = len(self.dealer_card_labels)
+            for i in range(existing_count, len(self.game.dealer_hand)):
+                card = self.game.dealer_hand[i]
+                label = self.card_display.add_card(self.dealerCardsLayout, card, animate=True)
+                self.dealer_card_labels.append(label)
+        else:
+            #clear
+            self.card_display.clear_layout(self.dealerCardsLayout)
+            self.dealer_card_labels = []
 
-        for i, card in enumerate(self.game.dealer_hand):
-            if i == 0 and not full and not self.game.dealer_hidden_revealed:
-                self.card_display.add_card(self.dealerCardsLayout, "??")   # face-down
-            else:
-                self.card_display.add_card(self.dealerCardsLayout, card)
+            for i, card in enumerate(self.game.dealer_hand):
+                if i == 0 and not full and not self.game.dealer_hidden_revealed:
+                    label = self.card_display.add_card(self.dealerCardsLayout, "??", animate=True)   # face-down
+                    self.dealer_card_labels.append(label)
+                    self.dealer_had_hidden_card = True
+                else:
+                    label = self.card_display.add_card(self.dealerCardsLayout, card, animate=True)
+                    self.dealer_card_labels.append(label)
+                    if i == 0:
+                        self.dealer_had_hidden_card = False
 
-        # Update dealer total label
+        #update dealer total label
         if full or self.game.dealer_hidden_revealed:
             dealer_total = self.game.dealer_total()
             self.dealerTotalLabel.setText(f"Total: {dealer_total}")
         else:
-            # Only show the visible card's value
+            #only show the visible cards value
             if len(self.game.dealer_hand) > 1:
                 visible_card = self.game.dealer_hand[1]
                 visible_value = self.game.card_value(visible_card)
@@ -262,17 +340,19 @@ class MainWindow(QMainWindow):
                 self.dealerTotalLabel.setText("Total: ?")
 
     def new_round_setup(self):
-        # Prepare a fresh visual layout
+        #new visual layout
         self.card_display.clear_layout(self.playerCardsLayout)
         self.card_display.clear_layout(self.dealerCardsLayout)
+        self.dealer_card_labels = []
+        self.dealer_had_hidden_card = False
         
-        # Update labels (reset dealer and player totals)
+        #update labels
         player_total = self.game.player_total()
         self.playerTotalLabel.setText(f"Total: {player_total}")
         
-        # Display new cards for dealers and players
+        #display new cards for dealers and players
         for card in self.game.player_hand:
-            self.card_display.add_card(self.playerCardsLayout, card)
+            self.card_display.add_card(self.playerCardsLayout, card, animate=True)
         
         self.update_dealer_cards(full=False)
         

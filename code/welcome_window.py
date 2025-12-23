@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton,
                              QVBoxLayout, QWidget, QGraphicsOpacityEffect)
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PyQt6.QtGui import QPixmap,  QFont, QFontDatabase
 import os
 
 from music_manager import MusicManager
@@ -13,7 +14,7 @@ class WelcomeWindow(QMainWindow):
         
         # Set window size
         self.resize(400, 300)
-        
+        QFontDatabase.addApplicationFont("code/assets/font/Ultra-Regular.ttf")
         # Center the window on screen
         screen = QApplication.primaryScreen().geometry()
         window_geometry = self.frameGeometry()
@@ -34,8 +35,7 @@ class WelcomeWindow(QMainWindow):
         title = QLabel("LUDO")
         title.setObjectName("titleLabel")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font = title.font()
-        font.setPointSize(36)
+        font = QFont("Ultra", 48)
         font.setBold(True)
         title.setFont(font)
         layout.addWidget(title)
