@@ -31,9 +31,12 @@ QLabel#cardLabel {
 QPushButton#actionButton {
     background-color: #9732a8;
     color: white;
-    border: 2px solid #4a90e2;
-    font-size: 12px;
-    min-width: 80px;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    font-size: 16px;
+    min-width: 120px;
+    min-height: 50px;
+    padding: 10px;
 }
 
 QPushButton#actionButton:hover {
@@ -47,15 +50,19 @@ QPushButton#actionButton:pressed {
 QPushButton#actionButton:disabled {
     background-color: #cccccc;
     color: #666666;
+    border: 2px solid #999999;
 }
 
 /* New Round Button */
 QPushButton#newRoundButton {
     background-color: #53ad62;
     color: white;
-    border: 2px solid #4a90e2;
-    font-size: 12px;
-    min-width: 100px;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    font-size: 16px;
+    min-width: 140px;
+    min-height: 50px;
+    padding: 10px;
 }
 
 QPushButton#newRoundButton:hover {
@@ -64,6 +71,12 @@ QPushButton#newRoundButton:hover {
 
 QPushButton#newRoundButton:pressed {
     background-color: #0a6bc2;
+}
+
+QPushButton#newRoundButton:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    border: 2px solid #999999;
 }
 
 /* Feedback Label */
@@ -76,33 +89,36 @@ QLabel#feedbackLabel {
 
 /* Menu Bar */
 QMenuBar {
-    background-color: #e0e0e0;
-    color: #333;
-    font-size: 11px;
-    padding: 2px;
+    background-color: #4a90e2;
+    color: white;
+    font-size: 12px;
+    padding: 4px;
 }
 
 QMenuBar::item {
     background-color: transparent;
-    padding: 4px 8px;
+    padding: 6px 12px;
+    color: white;
 }
 
 QMenuBar::item:selected {
-    background-color: #d0d0d0;
+    background-color: #357abd;
 }
 
 QMenu {
     background-color: white;
     border: 2px solid #4a90e2;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 QMenu::item {
     padding: 4px 20px;
+    color: #333;
 }
 
 QMenu::item:selected {
     background-color: #e0e0e0;
+    color: #000;
 }
 
 /* Dialog Styles */
@@ -134,19 +150,64 @@ QMessageBox {
 }
 
 QMessageBox QLabel {
-    font-size: 11px;
+    font-size: 18px;
     color: #333;
+    padding: 20px;
 }
 
 QMessageBox QPushButton {
     background-color: #2196F3;
     color: white;
     border: none;
-    padding: 6px 15px;
-    font-size: 11px;
-    min-width: 60px;
+    border-radius: 5px;
+    padding: 10px 25px;
+    font-size: 16px;
+    min-width: 100px;
+    min-height: 40px;
 }
 
 QMessageBox QPushButton:hover {
+    background-color: #0b7dda;
+}
+
+/* Welcome Window Styles */
+QLabel#titleLabel {
+    color: #333;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+QLabel#subtitleLabel {
+    color: #666;
+    font-size: 16px;
+}
+
+QPushButton#welcomeButton {
+    background-color: #2196F3;
+    color: white;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+}
+
+QPushButton#welcomeButton:hover {
+    background-color: #0b7dda;
+}
+
+QPushButton#welcomeButton:pressed {
+    background-color: #0a6bc2;
+}
+
+/* Result Dialog Button */
+QPushButton#resultButton {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+QPushButton#resultButton:hover {
     background-color: #0b7dda;
 }

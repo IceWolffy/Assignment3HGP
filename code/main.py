@@ -1,12 +1,123 @@
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, 
                              QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, 
-                             QDialog, QDialogButtonBox, QMenuBar, QMenu)
-from PyQt6.QtCore import Qt
+                             QDialog, QDialogButtonBox, QMenuBar, QMenu, QGraphicsOpacityEffect)
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 import sys
 import os
 
 # this project should use a modular approach - try to keep UI logic and game logic separate
 from game_logic import Game21
+
+class WelcomeWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("LUDO - Ready to gamble?")
+        self.setGeometry(300, 300, 400, 300)
+        
+        # Create central widget and layout
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout()
+        central_widget.setLayout(layout)
+        
+        # Add spacing at top
+        layout.addStretch()
+        
+        # Title
+        title = QLabel("LUDO")
+        title.setObjectName("titleLabel")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font = title.font()
+        font.setPointSize(36)
+        font.setBold(True)
+        title.setFont(font)
+        layout.addWidget(title)
+        
+        # Subtitle
+        subtitle = QLabel("Game of 21")
+        subtitle.setObjectName("subtitleLabel")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font = subtitle.font()
+        font.setPointSize(16)
+        subtitle.setFont(font)
+        layout.addWidget(subtitle)
+        
+        layout.addSpacing(40)
+        
+        # Start Game button
+        start_button = QPushButton("Start Game")
+        start_button.setObjectName("welcomeButton")
+        start_button.setMinimumHeight(50)
+        font = start_button.font()
+        font.setPointSize(14)
+        start_button.setFont(font)
+        start_button.clicked.connect(self.start_game)
+        layout.addWidget(start_button)
+        
+        # Add pulsating animation to start button
+        self.start_opacity_effect = QGraphicsOpacityEffect()
+        start_button.setGraphicsEffect(self.start_opacity_effect)
+        self.start_animation = QPropertyAnimation(self.start_opacity_effect, b"opacity")
+        self.start_animation.setDuration(3000)
+        self.start_animation.setStartValue(0.6)
+        self.start_animation.setKeyValueAt(0.5, 1.0)  # Peak at halfway
+        self.start_animation.setEndValue(0.6)  # Back to start
+        self.start_animation.setEasingCurve(QEasingCurve.Type.InOutSine)
+        self.start_animation.setLoopCount(-1)  # Loops forever
+        self.start_animation.start()
+        
+        layout.addSpacing(10)
+        
+        # Exit Game button
+        exit_button = QPushButton("Exit Game")
+        exit_button.setObjectName("welcomeButton")
+        exit_button.setMinimumHeight(50)
+        font = exit_button.font()
+        font.setPointSize(14)
+        exit_button.setFont(font)
+        exit_button.clicked.connect(self.exit_game)
+        layout.addWidget(exit_button)
+        
+        # Add pulsating animation to exit button (slightly offset)
+        self.exit_opacity_effect = QGraphicsOpacityEffect()
+        exit_button.setGraphicsEffect(self.exit_opacity_effect)
+        self.exit_animation = QPropertyAnimation(self.exit_opacity_effect, b"opacity")
+        self.exit_animation.setDuration(3000)  # 2 seconds for full cycle
+        self.exit_animation.setStartValue(1.0)
+        self.exit_animation.setKeyValueAt(0.5, 0.6)  # Dim at halfway
+        self.exit_animation.setEndValue(1.0)  # Back to start
+        self.exit_animation.setEasingCurve(QEasingCurve.Type.InOutSine)
+        self.exit_animation.setLoopCount(-1)  # Loop forever
+        self.exit_animation.start()
+        
+        # Add spacing at bottom
+        layout.addStretch()
+        
+        # Load stylesheet
+        self.load_stylesheet()
+        
+        # Reference to the game window (will be created when start is clicked)
+        self.game_window = None
+    
+    def load_stylesheet(self):
+        # Load stylesheet from file
+        stylesheet_path = os.path.join(os.path.dirname(__file__), "stylesheet.qss")
+        try:
+            with open(stylesheet_path, "r") as f:
+                self.setStyleSheet(f.read())
+        except FileNotFoundError:
+            print(f"Warning: Stylesheet file not found at {stylesheet_path}")
+    
+    def start_game(self):
+        # Create and show the main game window
+        self.game_window = MainWindow()
+        self.game_window.show()
+        # Close the welcome window
+        self.close()
+    
+    def exit_game(self):
+        # Close the application
+        QApplication.quit()
 
 class MainWindow(QMainWindow):
 
@@ -116,8 +227,8 @@ class MainWindow(QMainWindow):
         # Game menu
         game_menu = menubar.addMenu("Game")
         
-        new_game_action = game_menu.addAction("New Game")
-        new_game_action.triggered.connect(self.on_new_round)
+        main_menu_action = game_menu.addAction("Quit to Main Menu")
+        main_menu_action.triggered.connect(self.quit_to_main_menu)
         
         game_menu.addSeparator()
         
@@ -133,7 +244,13 @@ class MainWindow(QMainWindow):
         about_action = help_menu.addAction("About")
         about_action.triggered.connect(self.show_about)
 
-    # BUTTON ACTIONS
+    def quit_to_main_menu(self):
+        # Close the game window and show the welcome window
+        self.welcome_window = WelcomeWindow()
+        self.welcome_window.show()
+        self.close()
+
+    # Button actions
 
     def on_hit(self):
         # Player takes a card
@@ -232,20 +349,52 @@ class MainWindow(QMainWindow):
         # Enable buttons for Stand and Hit
         self.hitButton.setEnabled(True)
         self.standButton.setEnabled(True)
+        self.newRoundButton.setEnabled(False)
         self.feedbackLabel.setText("Your turn")
 
     def end_round(self):
         # Disable button actions after the round ends
         self.hitButton.setEnabled(False)
         self.standButton.setEnabled(False)
+        self.newRoundButton.setEnabled(True)
     
     def show_result_dialog(self, result):
-        # Show a dialog window with the game result
-        dialog = QMessageBox(self)
+        # Dialog box for round result
+        dialog = QDialog(self)
         dialog.setWindowTitle("Round Result")
-        dialog.setText(result)
-        dialog.setIcon(QMessageBox.Icon.Information)
-        dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+        dialog.setMinimumSize(500, 250)
+        
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+        
+        # Add spacing at top
+        layout.addStretch()
+        
+        # Result text label
+        result_label = QLabel(result)
+        result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        result_label.setStyleSheet("font-size: 24px; color: #333; font-weight: bold;")
+        layout.addWidget(result_label)
+        
+        # Add spacing in middle
+        layout.addStretch()
+        
+        # Button centered
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        ok_button = QPushButton("OK")
+        ok_button.setObjectName("resultButton")
+        ok_button.setMinimumSize(150, 50)
+        ok_button.clicked.connect(dialog.accept)
+
+        button_layout.addWidget(ok_button)        
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+        
+        # Add spacing at bottom
+        layout.addSpacing(20)
+        
         dialog.exec()
     
     def show_rules(self):
@@ -288,7 +437,6 @@ class MainWindow(QMainWindow):
                          "Try to beat the dealer!")
 
 
-# complete
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -296,6 +444,7 @@ if __name__ == '__main__':
     # macOS only fix for icons appearing
     app.setAttribute(Qt.ApplicationAttribute.AA_DontShowIconsInMenus, False)
 
-    window = MainWindow()
-    window.show()
+    # Show welcome window first
+    welcome = WelcomeWindow()
+    welcome.show()
     sys.exit(app.exec())

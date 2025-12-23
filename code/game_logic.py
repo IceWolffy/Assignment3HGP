@@ -160,6 +160,6 @@ class Game21:
         if player_total > dealer_total:
             return "player wins"
         elif dealer_total > player_total:
-            return "sealer wins"
+            return "dealer wins"
         else:
             return "push (tie)"
