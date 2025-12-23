@@ -169,6 +169,12 @@ QMenu::item:selected {
     color: #000;
 }
 
+QMenu::separator {
+    height: 1px;
+    background-color: #d0d0d0;
+    margin: 5px 10px;
+}
+
 /* Dialog Styles */
 QDialog {
     background-color: white;
