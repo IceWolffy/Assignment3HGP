@@ -101,6 +101,47 @@ QMenuBar {
     min-height: 26px;
 }
 
+/* Volume Control Widget */
+QWidget#volumeWidget {
+    background-color: transparent;
+}
+
+QLabel#volumeLabel {
+    color: #333;
+    padding: 0px 5px;
+    font-size: 14px;
+}
+
+QSlider#volumeSlider {
+    margin: 0px;
+    padding: 2px 0px;
+}
+
+QSlider#volumeSlider::groove:horizontal {
+    height: 4px;
+    background: #555;
+    border-radius: 2px;
+}
+
+QSlider#volumeSlider::handle:horizontal {
+    background: #2196F3;
+    width: 14px;
+    height: 14px;
+    margin: -5px 0;
+    border-radius: 7px;
+}
+
+QSlider#volumeSlider::handle:horizontal:hover {
+    background: #0b7dda;
+}
+
+QLabel#volumeValueLabel {
+    color: #333;
+    padding: 0px 5px;
+    min-width: 40px;
+    font-size: 14px;
+}
+
 QMenuBar::item {
     background-color: transparent;
     padding: 4px 10px;
@@ -179,7 +220,6 @@ QMessageBox QPushButton:hover {
 
 /* Welcome Window Styles */
 QLabel#titleLabel {
-    font-family: "Ultra";
     color: #ffffff;
     font-size: 48px;
     font-weight: bold;
@@ -213,7 +253,8 @@ QPushButton#resultButton {
     color: white;
     border: none;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 18px;
+    font-weight: bold;
 }
 
 QPushButton#resultButton:hover {

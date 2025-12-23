@@ -12,9 +12,16 @@ class WelcomeWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("LUDO - Ready to gamble?")
         
+        # Load custom font first
+        font_id = QFontDatabase.addApplicationFont("code/assets/font/Ultra-Regular.ttf")
+        font_families = QFontDatabase.applicationFontFamilies(font_id)
+        if font_families:
+            self.ultra_font_family = font_families[0]
+        else:
+            self.ultra_font_family = "Ultra"
+        
         # Set window size
         self.resize(400, 300)
-        QFontDatabase.addApplicationFont("code/assets/font/Ultra-Regular.ttf")
         # Center the window on screen
         screen = QApplication.primaryScreen().geometry()
         window_geometry = self.frameGeometry()
@@ -35,9 +42,10 @@ class WelcomeWindow(QMainWindow):
         title = QLabel("LUDO")
         title.setObjectName("titleLabel")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font = QFont("Ultra", 48)
-        font.setBold(True)
+        font = QFont(self.ultra_font_family, 48)
+        font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias)
         title.setFont(font)
+        print(f"Using font family: {self.ultra_font_family}")  # Debug
         layout.addWidget(title)
         
         # Subtitle
@@ -112,6 +120,7 @@ class WelcomeWindow(QMainWindow):
             music_mgr.play()
             self.music_player = music_mgr.get_player()
             self.audio_output = music_mgr.get_audio_output()
+            self.audio_output.setVolume(0.3)
         
         # Reference to the game window (will be created when start is clicked)
         self.game_window = None

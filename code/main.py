@@ -19,7 +19,6 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("LUDO")
 
-        QFontDatabase.addApplicationFont("code/assets/font/Jaro-Regular-VariableFont_opsz.ttf")
         # Set window size
         self.resize(600, 700)
 
@@ -52,13 +51,10 @@ class MainWindow(QMainWindow):
             self.music_player = music_mgr.get_player()
             self.audio_output = music_mgr.get_audio_output()
         
-        # Sync volume slider with current audio volume
+        # Set audio volume to match slider (30%)
         if hasattr(self, 'volume_slider') and self.audio_output:
-            current_volume = self.audio_output.volume()
-            volume_percent = int(current_volume * 100)
-            self.volume_slider.setValue(volume_percent)
-            if hasattr(self, 'volume_value_label'):
-                self.volume_value_label.setText(f"{volume_percent}%")
+            slider_value = self.volume_slider.value()
+            self.audio_output.setVolume(slider_value / 100.0)
 
     def initUI(self):
         # Create menu bar
@@ -167,6 +163,38 @@ class MainWindow(QMainWindow):
         # Settings menu
         settings_menu = menubar.addMenu("Settings")
         
+        # Volume control in settings menu
+        volume_widget = QWidget()
+        volume_widget.setObjectName("volumeWidget")
+        volume_layout = QHBoxLayout()
+        volume_layout.setContentsMargins(15, 8, 15, 8)
+        volume_layout.setSpacing(8)
+        
+        volume_label = QLabel("Volume:")
+        volume_label.setObjectName("volumeLabel")
+        volume_layout.addWidget(volume_label)
+        
+        self.volume_slider = QSlider(Qt.Orientation.Horizontal)
+        self.volume_slider.setObjectName("volumeSlider")
+        self.volume_slider.setMinimum(0)
+        self.volume_slider.setMaximum(100)
+        self.volume_slider.setValue(30)
+        self.volume_slider.setFixedWidth(150)
+        self.volume_slider.valueChanged.connect(self.update_volume)
+        volume_layout.addWidget(self.volume_slider)
+        
+        self.volume_value_label = QLabel("30%")
+        self.volume_value_label.setObjectName("volumeValueLabel")
+        volume_layout.addWidget(self.volume_value_label)
+        
+        volume_widget.setLayout(volume_layout)
+        
+        volume_action = QWidgetAction(self)
+        volume_action.setDefaultWidget(volume_widget)
+        settings_menu.addAction(volume_action)
+        
+        settings_menu.addSeparator()
+        
         card_back_menu = settings_menu.addMenu("Back of card color")
         
         # Red card backs
@@ -197,32 +225,6 @@ class MainWindow(QMainWindow):
         
         about_action = help_menu.addAction("About")
         about_action.triggered.connect(self.show_about)
-        
-        #volume control widget on menu bar
-        volume_widget = QWidget()
-        volume_layout = QHBoxLayout()
-        volume_layout.setContentsMargins(10, 0, 10, 0)
-        volume_layout.setSpacing(8)
-        
-        volume_label = QLabel("Volume:")
-        volume_label.setStyleSheet("color: white; padding: 0px 5px; font-size: 14px;")
-        volume_layout.addWidget(volume_label)
-        
-        self.volume_slider = QSlider(Qt.Orientation.Horizontal)
-        self.volume_slider.setMinimum(0)
-        self.volume_slider.setMaximum(100)
-        self.volume_slider.setValue(50)
-        self.volume_slider.setFixedWidth(120)
-        self.volume_slider.setFixedHeight(20)
-        self.volume_slider.valueChanged.connect(self.update_volume)
-        volume_layout.addWidget(self.volume_slider)
-        
-        self.volume_value_label = QLabel("50%")
-        self.volume_value_label.setStyleSheet("color: white; padding: 0px 5px; min-width: 40px; font-size: 14px;")
-        volume_layout.addWidget(self.volume_value_label)
-        
-        volume_widget.setLayout(volume_layout)
-        menubar.setCornerWidget(volume_widget, Qt.Corner.TopRightCorner)
 
     def update_volume(self, value):
         #convert slider value (0-100) to volume (0.0-1.0)
@@ -411,14 +413,21 @@ class MainWindow(QMainWindow):
         # Show rules dialog
         dialog = QDialog(self)
         dialog.setWindowTitle("Game Rules")
-        dialog.setGeometry(300, 300, 400, 300)
+        dialog.setFixedSize(600, 450)
+        
+        # Center the dialog
+        screen = QApplication.primaryScreen().geometry()
+        dialog_geometry = dialog.frameGeometry()
+        center_point = screen.center()
+        dialog_geometry.moveCenter(center_point)
+        dialog.move(dialog_geometry.topLeft())
         
         layout = QVBoxLayout()
         dialog.setLayout(layout)
         
         rules_text = QLabel("""
-        <h2>Game of 21 (Blackjack) Rules:</h2>
-        <ul>
+        <h2 style='font-size: 20px;'>Game of 21 (Blackjack) Rules:</h2>
+        <ul style='font-size: 16px; line-height: 1.6;'>
         <li>The goal is to get as close to 21 as possible without going over.</li>
         <li>Face cards (J, Q, K) are worth 10 points.</li>
         <li>Aces are worth 11 points, or 1 point if 11 would cause a bust.</li>
@@ -431,20 +440,50 @@ class MainWindow(QMainWindow):
         </ul>
         """)
         rules_text.setWordWrap(True)
+        rules_text.setStyleSheet("padding: 15px; background-color: white; border-radius: 5px;")
         layout.addWidget(rules_text)
         
-        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
-        button_box.accepted.connect(dialog.accept)
-        layout.addWidget(button_box)
+        ok_button = QPushButton("OK")
+        ok_button.setObjectName("resultButton")
+        ok_button.setFixedSize(120, 45)
+        ok_button.clicked.connect(dialog.accept)
+        layout.addWidget(ok_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
         dialog.exec()
     
     def show_about(self):
         # Show about dialog
-        QMessageBox.about(self, "About", 
-                         "Game of 21 (Blackjack)\n\n"
-                         "A classic card game built with PyQt6.\n\n"
-                         "Try to beat the dealer!")
+        dialog = QDialog(self)
+        dialog.setWindowTitle("About")
+        dialog.setFixedSize(500, 300)
+        
+        # Center the dialog
+        screen = QApplication.primaryScreen().geometry()
+        dialog_geometry = dialog.frameGeometry()
+        center_point = screen.center()
+        dialog_geometry.moveCenter(center_point)
+        dialog.move(dialog_geometry.topLeft())
+        
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+        
+        about_text = QLabel(
+            "<h2 style='font-size: 24px;'>Game of 21 (Blackjack)</h2>"
+            "<p style='font-size: 16px; margin-top: 10px;'>A classic card game built with PyQt6.</p>"
+            "<p style='font-size: 16px;'>Try to beat the dealer!</p>"
+        )
+        about_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        about_text.setWordWrap(True)
+        about_text.setStyleSheet("padding: 30px; background-color: white; border-radius: 5px;")
+        layout.addWidget(about_text)
+        
+        ok_button = QPushButton("OK")
+        ok_button.setObjectName("resultButton")
+        ok_button.setFixedSize(120, 45)
+        ok_button.clicked.connect(dialog.accept)
+        layout.addWidget(ok_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        dialog.exec()
 
 
 
