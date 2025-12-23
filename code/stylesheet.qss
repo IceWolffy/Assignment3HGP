@@ -1,0 +1,152 @@
+/* Main Window Styles */
+QMainWindow {
+    background-color: #f5f5f5;
+}
+
+/* Section Labels (Dealer, Player) */
+QLabel#sectionLabel {
+    font-size: 14px;
+    color: #333;
+    padding: 5px 0px;
+}
+
+/* Total Labels */
+QLabel#totalLabel {
+    font-size: 12px;
+    padding: 3px 0px;
+}
+
+/* Card Labels */
+QLabel#cardLabel {
+    background-color: white;
+    border: 2px solid #333;
+    padding: 10px;
+    min-width: 50px;
+    min-height: 30px;
+    font-size: 16px;
+    color: #000;
+}
+
+/* hit n stand */
+QPushButton#actionButton {
+    background-color: #9732a8;
+    color: white;
+    border: 2px solid #4a90e2;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+QPushButton#actionButton:hover {
+    background-color: #44154d;
+}
+
+QPushButton#actionButton:pressed {
+    background-color: #3d8b40;
+}
+
+QPushButton#actionButton:disabled {
+    background-color: #cccccc;
+    color: #666666;
+}
+
+/* New Round Button */
+QPushButton#newRoundButton {
+    background-color: #53ad62;
+    color: white;
+    border: 2px solid #4a90e2;
+    font-size: 12px;
+    min-width: 100px;
+}
+
+QPushButton#newRoundButton:hover {
+    background-color: #34613c;
+}
+
+QPushButton#newRoundButton:pressed {
+    background-color: #0a6bc2;
+}
+
+/* Feedback Label */
+QLabel#feedbackLabel {
+    font-size: 11px;
+    color: #666;
+    padding: 10px;
+    background-color: #e8e8e8;
+}
+
+/* Menu Bar */
+QMenuBar {
+    background-color: #e0e0e0;
+    color: #333;
+    font-size: 11px;
+    padding: 2px;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 4px 8px;
+}
+
+QMenuBar::item:selected {
+    background-color: #d0d0d0;
+}
+
+QMenu {
+    background-color: white;
+    border: 2px solid #4a90e2;
+    font-size: 11px;
+}
+
+QMenu::item {
+    padding: 4px 20px;
+}
+
+QMenu::item:selected {
+    background-color: #e0e0e0;
+}
+
+/* Dialog Styles */
+QDialog {
+    background-color: white;
+}
+
+QDialog QLabel {
+    font-size: 11px;
+    color: #333;
+}
+
+QDialogButtonBox QPushButton {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    font-size: 11px;
+    min-width: 60px;
+}
+
+QDialogButtonBox QPushButton:hover {
+    background-color: #0b7dda;
+}
+
+/* Message Box */
+QMessageBox {
+    background-color: white;
+}
+
+QMessageBox QLabel {
+    font-size: 11px;
+    color: #333;
+}
+
+QMessageBox QPushButton {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    font-size: 11px;
+    min-width: 60px;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #0b7dda;
+}
