@@ -21,6 +21,7 @@ class MainWindow(QMainWindow):
 
         # Set window size
         self.resize(600, 700)
+        self.setMinimumSize(600, 700)
 
         # Center the window on screen
         screen = QApplication.primaryScreen().geometry()
@@ -282,7 +283,7 @@ class MainWindow(QMainWindow):
             self.show_result_dialog(result)
 
     def on_stand(self):
-        # Player ends turn; dealer reveals their hidden card and plays
+        # Player ends turn, dealer reveals their hidden card and plays
         self.game.reveal_dealer_card()
         
         # Play dealer's turn

@@ -23,6 +23,7 @@ class WelcomeWindow(QMainWindow):
         
         # Set window size
         self.resize(400, 300)
+        self.setMinimumSize(400, 300)
         # Center the window on screen
         screen = QApplication.primaryScreen().geometry()
         window_geometry = self.frameGeometry()
@@ -46,7 +47,7 @@ class WelcomeWindow(QMainWindow):
         font = QFont(self.ultra_font_family, 48)
         font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias)
         title.setFont(font)
-        print(f"Using font family: {self.ultra_font_family}")  # Debug
+        print(f"Using font family: {self.ultra_font_family}")
         layout.addWidget(title)
         
         # Subtitle
@@ -76,8 +77,8 @@ class WelcomeWindow(QMainWindow):
         self.start_animation = QPropertyAnimation(self.start_opacity_effect, b"opacity")
         self.start_animation.setDuration(3000)
         self.start_animation.setStartValue(0.6)
-        self.start_animation.setKeyValueAt(0.5, 1.0)  # Peak at halfway
-        self.start_animation.setEndValue(0.6)  # Back to start
+        self.start_animation.setKeyValueAt(0.5, 1.0)
+        self.start_animation.setEndValue(0.6)
         self.start_animation.setEasingCurve(QEasingCurve.Type.InOutSine)
         self.start_animation.setLoopCount(-1)  # Loops forever
         self.start_animation.start()
@@ -94,14 +95,14 @@ class WelcomeWindow(QMainWindow):
         exit_button.clicked.connect(self.exit_game)
         layout.addWidget(exit_button)
         
-        # Add pulsating animation to exit button (slightly offset)
+        # Add pulsating animation to exit button
         self.exit_opacity_effect = QGraphicsOpacityEffect()
         exit_button.setGraphicsEffect(self.exit_opacity_effect)
         self.exit_animation = QPropertyAnimation(self.exit_opacity_effect, b"opacity")
-        self.exit_animation.setDuration(3000)  # 2 seconds for full cycle
+        self.exit_animation.setDuration(3000)
         self.exit_animation.setStartValue(1.0)
-        self.exit_animation.setKeyValueAt(0.5, 0.6)  # Dim at halfway
-        self.exit_animation.setEndValue(1.0)  # Back to start
+        self.exit_animation.setKeyValueAt(0.5, 0.6)
+        self.exit_animation.setEndValue(1.0)
         self.exit_animation.setEasingCurve(QEasingCurve.Type.InOutSine)
         self.exit_animation.setLoopCount(-1)  # Loop forever
         self.exit_animation.start()
