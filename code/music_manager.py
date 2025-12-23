@@ -19,19 +19,19 @@ class MusicManager:
         self.audio_output.setVolume(0.5)
     
     def play(self):
-        """Start playing the music"""
+        #Start playing the music
         self.music_player.play()
     
     def loop_music(self, status):
-        """When the music ends, restart it"""
+        #When the music ends, restart it
         if status == QMediaPlayer.MediaStatus.EndOfMedia:
             self.music_player.setPosition(0)
             self.music_player.play()
     
     def get_player(self):
-        """Return the music player instance"""
+        #Return the music player instance
         return self.music_player
     
     def get_audio_output(self):
-        """Return the audio output instance"""
+        # Return the audio output instance
         return self.audio_output

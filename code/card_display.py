@@ -8,7 +8,7 @@ class CardDisplay:
         self.card_back_style = card_back_style
     
     def get_card_image_path(self, card_text):
-        """Convert card text like 'A♠' to image filename like 'cardSpadesA.png'"""
+        # Convert card text like 'A♠' to image filename like 'cardSpadesA.png'
         if card_text == "??":
             # Use selected card back style
             return os.path.join(os.path.dirname(__file__), "assets", "cards", self.card_back_style)
@@ -32,7 +32,7 @@ class CardDisplay:
         return os.path.join(os.path.dirname(__file__), "assets", "cards", filename)
     
     def clear_layout(self, layout):
-        """Remove all widgets and spacers from a layout"""
+        # Remove all widgets and spacers from a layout
         if layout is not None:
             while layout.count():
                 item = layout.takeAt(0)
@@ -44,7 +44,7 @@ class CardDisplay:
                     self.clear_layout(item.layout())
     
     def add_card(self, layout, card_text):
-        """Create a QLabel showing the card image and add it to the chosen layout."""
+        # Create a QLabel showing the card image and add it to the chosen layout.
         label = QLabel()
         label.setObjectName("cardLabel")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -62,5 +62,5 @@ class CardDisplay:
         label.setProperty("card", True)
     
     def set_card_back_style(self, card_back_file):
-        """Change the card back style"""
+        # Change the card back style
         self.card_back_style = card_back_file
