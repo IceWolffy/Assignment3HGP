@@ -12,8 +12,8 @@ class MusicManager:
         music_path = os.path.join(os.path.dirname(__file__), "assets", "music", "totallyOriginalOST.mp3")
         self.music_player.setSource(QUrl.fromLocalFile(music_path))
         
-        # Connect the mediaStatusChanged signal to loop the music
-        self.music_player.mediaStatusChanged.connect(self.loop_music)
+        # Set the music to loop infinitely
+        self.music_player.setLoops(QMediaPlayer.Loops.Infinite)
         
         # Set volume (0.0 to 1.0)
         self.audio_output.setVolume(0.5)
@@ -21,12 +21,6 @@ class MusicManager:
     def play(self):
         #Start playing the music
         self.music_player.play()
-    
-    def loop_music(self, status):
-        #When the music ends, restart it
-        if status == QMediaPlayer.MediaStatus.EndOfMedia:
-            self.music_player.setPosition(0)
-            self.music_player.play()
     
     def get_player(self):
         #Return the music player instance
